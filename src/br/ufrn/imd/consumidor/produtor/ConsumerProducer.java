@@ -1,22 +1,47 @@
 package br.ufrn.imd.consumidor.produtor;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-//import java.util.concurrent.ArrayBlockingQueue;
 
 public class ConsumerProducer {
+    int capacity = 4;
+    BlockingQueue<Integer> numbers = new ArrayBlockingQueue<>(capacity);
 
-    public static void Producer(BlockingQueue<Integer> numbers, int size){
-        for(int i = 0; i < size; i++){
-            int value = (int) (Math.random() * 100);
-            numbers.add(value);
+    public void Producer() throws InterruptedException{
+        int elem = 1;
+        while (true)
+        {
+            synchronized (this)
+            {
+                while (numbers.size() == capacity){
+                    System.out.println("Produtor Dormindo...");
+                    wait();
+                }
+                elem = (int) (Math.random() * 1000);
+                this.numbers.add(elem);
+                System.out.println("Elemento " + elem + " produzido...");
+                notify();
+                Thread.sleep(500);
+            }
         }
-        System.out.println(numbers);
     }
 
-    public static void Consumer(BlockingQueue<Integer> numbers){
-        System.out.println("Tamanho da fila antes de remover: " + numbers.size());
-        while(!numbers.isEmpty()){
-            System.out.println("Elemento removido: " + numbers.remove() * 2);
-            System.out.println(numbers.size());
+    public void Consumer() throws InterruptedException {
+        int elem;
+        while(true)
+        {
+            synchronized (this)
+            {
+                while (numbers.isEmpty())
+                {
+                    System.out.println("Consumidor Dormindo...");
+                    wait();
+                }
+                elem = this.numbers.remove();
+                System.out.println("Elemento " + elem * 2+ " removido");
+                notify();
+                Thread.sleep(500);
+            }
         }
     }
 }
+
